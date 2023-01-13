@@ -17,5 +17,6 @@ jobs:
         make -j
       name: Build tests
     - run: |
+        cd build
         ./test1
       name: Run tests
