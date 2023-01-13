@@ -1,0 +1,22 @@
+name: unittest of namedtuple
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      name: Checkout repo
+    - run: sudo apt install g++ cmake googletest
+      name: Install system
+    - run: |
+        mkdir build
+        cd build
+        cmake ..
+        make -j
+      name: Build tests
+    - run: |
+        ./test1
+      name: Run tests
+
