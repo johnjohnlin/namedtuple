@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       name: Checkout repo
-    - run: sudo apt install g++ cmake googletest
+    - run: sudo apt install build-essential cmake libgtest-dev
       name: Install system
     - run: |
         mkdir build
@@ -19,4 +19,3 @@ jobs:
     - run: |
         ./test1
       name: Run tests
-
