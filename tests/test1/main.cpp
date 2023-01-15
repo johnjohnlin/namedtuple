@@ -212,3 +212,35 @@ TEST(Generic, DISABLED_Sum) {
 
 TEST(Generic, DISABLED_SumReversed) {
 }
+
+DEFINE_NAMEDTUPLE(S4)
+	NT_MEMBER(int   , x)
+	// will not compare member started with "_"
+	NT_MEMBER(float , _y)
+	NT_MEMBER(string, z)
+END_DEFINE_NAMEDTUPLE(S4)
+
+template<typename NT, unsigned...indices>
+bool compare_impl(const NT& lhs, const NT& rhs, integer_sequence<unsigned, indices...>) {
+	return (
+		(
+			NT::template get_name<indices>()[0] == '_' or
+			lhs.template get<indices>() == rhs.template get<indices>()
+		)
+		and ...
+	);
+}
+
+template<typename NT>
+bool compare(const NT& lhs, const NT& rhs) {
+	return compare_impl(lhs, rhs, make_integer_sequence<unsigned, NT::num_members>{});
+}
+
+TEST(Customized, Comparison) {
+	S4 a{1, 2, "3"};
+	S4 b{1, 3, "3"};
+	EXPECT_TRUE(compare(a, b)); // true
+	b.z = "";
+	EXPECT_FALSE(compare(a, b)); // false
+
+}
