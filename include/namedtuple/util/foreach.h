@@ -1,3 +1,6 @@
+/*
+	This flie implements templates for iterating a namedtuple.
+*/
 #pragma once
 // Direct include
 // C system headers
