@@ -4,6 +4,9 @@
 #include <array>
 #include <sstream>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 // Other libraries' .h files.
 #include <gtest/gtest.h>
 // Your project's .h files.
@@ -242,5 +245,73 @@ TEST(Customized, Comparison) {
 	EXPECT_TRUE(compare(a, b)); // true
 	b.z = "";
 	EXPECT_FALSE(compare(a, b)); // false
+}
 
+DEFINE_NAMEDTUPLE(S5)
+	NT_MEMBER(int, a)
+	NT_MEMBER(NT_TYPE(vector<int>), b1)
+	NT_MEMBER(NT_TYPE(vector<float>), b2)
+	NT_MEMBER(NT_TYPE(vector<void*>), b3)
+	NT_MEMBER(NT_TYPE(unordered_map<string, int>), c1)
+	NT_MEMBER(NT_TYPE(unordered_map<int, int>), c2)
+	NT_MEMBER(NT_TYPE(unordered_set<int>), d1)
+
+	template<typename U> static void ClearOneVector(U& u) {}
+	template<typename U> static void ClearOneVector(vector<U>& u) { u.clear(); }
+	template<typename U> static void ClearOneUnorderedMap(U& u) {}
+	template<typename U, typename V> static void ClearOneUnorderedMap(unordered_map<U, V>& u) { u.clear(); }
+
+	void ClearAllVectors() {
+		namedtuple::foreach<S5>([this](auto int_const) {
+			ClearOneVector(get(int_const));
+		});
+	}
+	void ClearAllUnorderedMaps() {
+		namedtuple::foreach<S5>([this](auto int_const) {
+			ClearOneUnorderedMap(get(int_const));
+		});
+	}
+END_DEFINE_NAMEDTUPLE(S4)
+
+TEST(Customized, Filter) {
+	S5 s5;
+	s5.a = 1;
+	s5.b1.push_back(1);
+	s5.b2.push_back(1.5);
+	s5.b3.push_back(nullptr);
+	s5.c1.emplace("", 1);
+	s5.c2.emplace(1.5, 1);
+	s5.d1.insert(99);
+	EXPECT_EQ(s5.a, 1);
+	EXPECT_FALSE(
+		s5.b2.empty() or
+		s5.b3.empty() or
+		s5.c1.empty() or
+		s5.c2.empty() or
+		s5.d1.empty()
+	);
+
+	s5.ClearAllUnorderedMaps();
+	EXPECT_EQ(s5.a, 1);
+	EXPECT_TRUE(
+		s5.c1.empty() and
+		s5.c2.empty()
+	);
+	EXPECT_FALSE(
+		s5.b2.empty() or
+		s5.b3.empty() or
+		s5.d1.empty()
+	);
+
+	s5.ClearAllVectors();
+	EXPECT_EQ(s5.a, 1);
+	EXPECT_TRUE(
+		s5.b2.empty() and
+		s5.b3.empty() and
+		s5.c1.empty() and
+		s5.c2.empty()
+	);
+	EXPECT_FALSE(
+		s5.d1.empty()
+	);
 }
