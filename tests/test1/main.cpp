@@ -271,7 +271,7 @@ DEFINE_NAMEDTUPLE(S5)
 			ClearOneUnorderedMap(get(int_const));
 		});
 	}
-END_DEFINE_NAMEDTUPLE(S4)
+END_DEFINE_NAMEDTUPLE(S5)
 
 TEST(Customized, Filter) {
 	S5 s5;
