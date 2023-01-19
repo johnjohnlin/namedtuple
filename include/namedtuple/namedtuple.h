@@ -15,7 +15,7 @@ struct name {\
 	static constexpr unsigned kCounterBegin = __COUNTER__+1;\
 	using Str = ::std::string;\
 	template<unsigned x> using Constant = ::std::integral_constant<unsigned, x>;\
-	static constexpr bool is_namedtuple = true;
+	static constexpr unsigned nametuple_tag = 0u;
 #define END_DEFINE_NAMEDTUPLE(name)\
 	template<unsigned x> auto& get() { return get(Constant<x>{}); }\
 	template<unsigned x> const auto& get() const { return get(Constant<x>{}); }\
@@ -33,10 +33,25 @@ struct name {\
 
 namespace namedtuple {
 
+// is_namedtuple(_v)
 template<typename T, typename = void>
 struct is_namedtuple: ::std::false_type {};
 template<typename T>
-struct is_namedtuple<T, typename ::std::enable_if_t<T::is_namedtuple>>: public ::std::true_type {};
-template<typename T> inline constexpr bool is_namedtuple_v = is_namedtuple<T>::value;
+struct is_namedtuple<
+	T,
+	::std::enable_if_t<sizeof(T::nametuple_tag) != 0>
+>: public ::std::true_type {};
+template<typename T>
+inline constexpr bool is_namedtuple_v = is_namedtuple<T>::value;
+// is_namedtuple_of_id(_v)
+template<typename T, unsigned tag_id, typename = void>
+struct is_namedtuple_of_id: ::std::false_type {};
+template<typename T, unsigned tag_id>
+struct is_namedtuple_of_id<
+	T, tag_id,
+	::std::enable_if_t<tag_id == T::nametuple_tag>
+>: public ::std::true_type {};
+template<typename T, unsigned tag_idx>
+inline constexpr bool is_namedtuple_of_id_v = is_namedtuple_of_id<T, tag_idx>::value;
 
 } // namespace namedtuple

@@ -13,27 +13,23 @@ namespace namedtuple {
 
 namespace detail {
 
-template<unsigned...i, typename Func>
+template<unsigned m, unsigned c, unsigned...i, typename Func>
 void foreach(::std::integer_sequence<unsigned, i...>, Func func) {
-	(func(::std::integral_constant<unsigned, i>{}), ...);
-}
-
-template<unsigned...i, typename Func>
-void foreach_reversed(::std::integer_sequence<unsigned, i...>, Func func) {
-	constexpr unsigned first_i = sizeof...(i)-1;
-	(func(::std::integral_constant<unsigned, first_i-i>{}), ...);
+	(func(::std::integral_constant<unsigned, m*i+c>{}), ...);
 }
 
 } // namespace detail
 
 template<typename NT, typename Func>
 void foreach(Func func) {
-	detail::foreach(::std::make_integer_sequence<unsigned, NT::num_members>{}, func);
+	detail::foreach<1, 0>(::std::make_integer_sequence<unsigned, NT::num_members>{}, func);
 }
 
 template<typename NT, typename Func>
 void foreach_reversed(Func func) {
-	detail::foreach_reversed(::std::make_integer_sequence<unsigned, NT::num_members>{}, func);
+	detail::foreach<unsigned(-1), NT::num_members-1>(
+		::std::make_integer_sequence<unsigned, NT::num_members>{}, func
+	);
 }
 
 } // namespace namedtuple
