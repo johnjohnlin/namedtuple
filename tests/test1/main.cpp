@@ -12,6 +12,7 @@
 // Your project's .h files.
 #include "namedtuple/namedtuple.h"
 #include "namedtuple/util/foreach.h"
+// #include "namedtuple/util/sum.h"
 
 using namespace std;
 
@@ -173,7 +174,7 @@ TEST(Generic, ForeachReversed) {
 	{
 		array<string, S3::num_members> member_names;
 		namedtuple::foreach_reversed<S3>([&s3, &member_names](auto int_const) {
-			constexpr unsigned i = decltype(int_const)::value;
+			constexpr unsigned i = int_const();
 			member_names[i] = S3::get_name<i>();
 		});
 		EXPECT_EQ(member_names[0], "d_i");
@@ -183,8 +184,7 @@ TEST(Generic, ForeachReversed) {
 	{
 		array<string, S3::num_members> member_names;
 		namedtuple::foreach_reversed<S3>([&s3, &member_names](auto int_const) {
-			constexpr unsigned i = decltype(int_const)::value;
-			member_names[i] = S3::get_name(int_const);
+			member_names[int_const()] = S3::get_name(int_const);
 		});
 		EXPECT_EQ(member_names[0], "d_i");
 		EXPECT_EQ(member_names[1], "d_str");
@@ -193,8 +193,7 @@ TEST(Generic, ForeachReversed) {
 	{
 		array<size_t, S3::num_members> member_sizes;
 		namedtuple::foreach_reversed<S3>([&s3, &member_sizes](auto int_const) {
-			constexpr unsigned i = decltype(int_const)::value;
-			member_sizes[i] = sizeof(s3.get(int_const));
+			member_sizes[int_const()] = sizeof(s3.get(int_const));
 		});
 		EXPECT_EQ(member_sizes[0], sizeof(int));
 		EXPECT_EQ(member_sizes[1], sizeof(string));
@@ -210,10 +209,10 @@ TEST(Generic, ForeachReversed) {
 	}
 }
 
-TEST(Generic, DISABLED_Sum) {
+TEST(Generic, Sum) {
 }
 
-TEST(Generic, DISABLED_SumReversed) {
+TEST(Generic, SumReversed) {
 }
 
 DEFINE_NAMEDTUPLE(S4)
