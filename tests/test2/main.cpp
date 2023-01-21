@@ -33,14 +33,14 @@ TEST(operators, stream) {
 	ss << s2;
 	EXPECT_EQ(
 		ss.str(),
-		"{\n"
-		"d_s1: {\n"
-		"d_l: 101,\n"
-		"d_u: 102,\n"
-		"d_s: 103,\n"
-		"},\n"
-		"d_str: 104,\n"
-		"}"
+R"({
+	"d_s1": {
+		"d_l": 101,
+		"d_u": 102,
+		"d_s": 103,
+	},
+	"d_str": 104,
+})"
 	);
 }
 
