@@ -12,7 +12,7 @@
 // Your project's .h files.
 #include "namedtuple/namedtuple.h"
 #include "namedtuple/util/foreach.h"
-// #include "namedtuple/util/sum.h"
+#include "namedtuple/util/sum.h"
 
 using namespace std;
 
@@ -209,10 +209,29 @@ TEST(Generic, ForeachReversed) {
 	}
 }
 
-TEST(Generic, Sum) {
+template<unsigned v>
+struct SumOfSizeof_: public integral_constant<unsigned, v> {
+	template<unsigned v_rhs>
+	constexpr auto operator+(SumOfSizeof_<v_rhs>) {
+		return SumOfSizeof_<v+v_rhs>();
+	}
+};
+
+template<typename T>
+constexpr unsigned SumOfSizeof() {
+	T* tp = nullptr;
+	auto ret = namedtuple::sum<T>(
+		[tp](auto int_const) { return SumOfSizeof_<sizeof(decltype(tp->get(int_const)))>(); }
+	);
+	return ret();
 }
 
-TEST(Generic, SumReversed) {
+TEST(Generic, Sum) {
+	static_assert(SumOfSizeof<S1>() == sizeof(long) + sizeof(unsigned) + sizeof(short)*2);
+	static_assert(SumOfSizeof<S2>() == sizeof(string) + sizeof(S1));
+}
+
+TEST(Generic, DISABLED_SumReversed) {
 }
 
 DEFINE_NAMEDTUPLE(S4)
