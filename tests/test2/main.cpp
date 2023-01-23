@@ -23,25 +23,49 @@ DEFINE_NAMEDTUPLE(S2)
 	NT_MEMBER(string, d_str)
 END_DEFINE_NAMEDTUPLE(S2)
 
+DEFINE_NAMEDTUPLE(S3)
+	NT_MEMBER(S1            , d_s1)
+	NT_MEMBER(vector<S2>    , d_s2v)
+	NT_MEMBER(vector<string>, d_strv)
+END_DEFINE_NAMEDTUPLE(S3)
+
 TEST(operators, stream) {
-	S2 s2;
+	static_assert(namedtuple::has_cbegin<vector<int>>::value);
+	static_assert(not namedtuple::has_cbegin<int>::value);
+	S3 s3;
 	stringstream ss;
-	s2.d_s1.d_l = 101;
-	s2.d_s1.d_u = 102;
-	s2.d_s1.d_s = 103;
-	s2.d_str = "104";
-	ss << s2;
+	s3.d_s1.d_l = 101;
+	s3.d_s1.d_u = 102;
+	s3.d_s1.d_s = 103;
+	s3.d_s2v.push_back({{7,8,9}, "ZZZ"});
+	s3.d_strv.push_back("A");
+	s3.d_strv.push_back("BB");
+	ss << s3;
 	EXPECT_EQ(
 		ss.str(),
 R"({
 	"d_s1": {
 		"d_l": 101,
 		"d_u": 102,
-		"d_s": 103,
+		"d_s": 103
 	},
-	"d_str": 104,
+	"d_s2v": [
+		{
+			"d_s1": {
+				"d_l": 7,
+				"d_u": 8,
+				"d_s": 9
+			},
+			"d_str": "ZZZ"
+		}
+	],
+	"d_strv": [
+		"A",
+		"BB"
+	]
 })"
 	);
+	// cout << s3 << endl;
 }
 
 TEST(operators, compare) {
