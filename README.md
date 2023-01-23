@@ -1,3 +1,5 @@
+[Build status](https://github.com/johnjohnlin/namedtuple/actions/workflows/unittest.yaml/badge.svg)
+
 # What is namedtuple?
 In Python, there is a `namedtuple`
 

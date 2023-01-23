@@ -17,7 +17,7 @@
 template<typename NT, typename = ::std::enable_if_t<namedtuple::is_namedtuple_v<NT>>>
 static ::std::ostream&
 operator<<(::std::ostream& ost, const NT &rhs) {
-	return namedtuple::collection<NT>::print_func(ost, rhs);
+	return namedtuple::print_func(ost, rhs);
 }
 
 template<typename NT, typename = ::std::enable_if_t<namedtuple::is_namedtuple_v<NT>>>
