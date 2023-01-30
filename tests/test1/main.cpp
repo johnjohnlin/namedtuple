@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <string>
 // Other libraries' .h files.
 #include <gtest/gtest.h>
 // Your project's .h files.
@@ -16,18 +17,18 @@
 
 using namespace std;
 
-DEFINE_NAMEDTUPLE(S1)
-	NT_MEMBER(NT_TYPE(long)            , d_l)
-	NT_MEMBER(NT_TYPE(unsigned)        , d_u)
-	NT_MEMBER(NT_TYPE(array<short, 2>) , d_s2)
-END_DEFINE_NAMEDTUPLE(S1)
+struct S1 {
+	long            d_l;
+	unsigned        d_u;
+	array<short, 2> d_s2;
+	MAKE_NAMEDTUPLE(d_l, d_u, d_s2)
+};
 
-// NOTE: if your typename does not have comma, then
-// NT_TYPE is not necessary
-DEFINE_NAMEDTUPLE(S2)
-	NT_MEMBER(S1    , d_s1)
-	NT_MEMBER(string, d_str)
-END_DEFINE_NAMEDTUPLE(S2)
+struct S2 {
+	S1     d_s1;
+	string d_str;
+	MAKE_NAMEDTUPLE(d_s1,    d_str)
+};
 
 struct S1_native {
 	long            d_l;
@@ -108,10 +109,11 @@ TEST(Basic, Access) {
 	EXPECT_EQ(S2::get_name<1>(), "d_str");
 }
 
-DEFINE_NAMEDTUPLE(S3)
-	NT_MEMBER(NT_TYPE(int)   , d_i)
-	NT_MEMBER(NT_TYPE(string), d_str)
-END_DEFINE_NAMEDTUPLE(S3)
+struct S3 {
+	int    d_i;
+	string d_str;
+	MAKE_NAMEDTUPLE(d_i, d_str)
+};
 
 TEST(Generic, Foreach) {
 	static_assert(S3::num_members == 2);
@@ -234,12 +236,13 @@ TEST(Generic, Sum) {
 TEST(Generic, DISABLED_SumReversed) {
 }
 
-DEFINE_NAMEDTUPLE(S4)
-	NT_MEMBER(int   , x)
+struct S4 {
+	int    x;
 	// will not compare member started with "_"
-	NT_MEMBER(float , _y)
-	NT_MEMBER(string, z)
-END_DEFINE_NAMEDTUPLE(S4)
+	float  _y;
+	string z;
+	MAKE_NAMEDTUPLE(x, _y, z)
+};
 
 template<typename NT, unsigned...indices>
 bool compare_impl(const NT& lhs, const NT& rhs, integer_sequence<unsigned, indices...>) {
@@ -265,14 +268,15 @@ TEST(Customized, Comparison) {
 	EXPECT_FALSE(compare(a, b)); // false
 }
 
-DEFINE_NAMEDTUPLE(S5)
-	NT_MEMBER(int, a)
-	NT_MEMBER(NT_TYPE(vector<int>), b1)
-	NT_MEMBER(NT_TYPE(vector<float>), b2)
-	NT_MEMBER(NT_TYPE(vector<void*>), b3)
-	NT_MEMBER(NT_TYPE(unordered_map<string, int>), c1)
-	NT_MEMBER(NT_TYPE(unordered_map<int, int>), c2)
-	NT_MEMBER(NT_TYPE(unordered_set<int>), d1)
+struct S5 {
+	int a;
+	vector<int> b1;
+	vector<float> b2;
+	vector<void*> b3;
+	unordered_map<string, int> c1;
+	unordered_map<int, int> c2;
+	unordered_set<int> d1;
+	MAKE_NAMEDTUPLE(b1, b2, b3, c1, c2, d1)
 
 	template<typename U> static void ClearOneVector(U& u) {}
 	template<typename U> static void ClearOneVector(vector<U>& u) { u.clear(); }
@@ -289,7 +293,7 @@ DEFINE_NAMEDTUPLE(S5)
 			ClearOneUnorderedMap(get(int_const));
 		});
 	}
-END_DEFINE_NAMEDTUPLE(S5)
+};
 
 TEST(Customized, Filter) {
 	S5 s5;

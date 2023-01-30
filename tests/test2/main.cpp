@@ -12,22 +12,25 @@
 
 using namespace std;
 
-DEFINE_NAMEDTUPLE(S1)
-	NT_MEMBER(NT_TYPE(long)     , d_l)
-	NT_MEMBER(NT_TYPE(unsigned) , d_u)
-	NT_MEMBER(NT_TYPE(short)    , d_s)
-END_DEFINE_NAMEDTUPLE(S1)
+struct S1 {
+	long     d_l;
+	unsigned d_u;
+	short    d_s;
+	MAKE_NAMEDTUPLE(d_l, d_u, d_s)
+};
 
-DEFINE_NAMEDTUPLE(S2)
-	NT_MEMBER(S1    , d_s1)
-	NT_MEMBER(string, d_str)
-END_DEFINE_NAMEDTUPLE(S2)
+struct S2 {
+	S1     d_s1;
+	string d_str;
+	MAKE_NAMEDTUPLE(d_s1, d_str)
+};
 
-DEFINE_NAMEDTUPLE(S3)
-	NT_MEMBER(S1            , d_s1)
-	NT_MEMBER(vector<S2>    , d_s2v)
-	NT_MEMBER(vector<string>, d_strv)
-END_DEFINE_NAMEDTUPLE(S3)
+struct S3 {
+	S1             d_s1;
+	vector<S2>     d_s2v;
+	vector<string> d_strv;
+	MAKE_NAMEDTUPLE(d_s1, d_s2v, d_strv)
+};
 
 TEST(operators, stream) {
 	static_assert(namedtuple::has_cbegin<vector<int>>::value);

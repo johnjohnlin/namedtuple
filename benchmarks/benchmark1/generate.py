@@ -2,7 +2,7 @@
 from random import *
 from typing import *
 
-kNumClass = 40
+kNumClass = 30
 kNativeTypes = ["int*", "long", "unsigned", "float", "string"]
 kNativeMemberPerClass = 10
 kNestedMemberPerClass = 5
@@ -103,13 +103,18 @@ operator<<(::std::ostream& ost, const NT &rhs) {
 		super().End()
 
 	def Member(self, tname, mname):
-		self.fp.write(f"	NT_MEMBER(NT_TYPE({tname}),{mname})\n")
+		self.fp.write(f"	{tname} {mname};\n")
+		self.mlist.append(mname)
 
 	def BeginStruct(self, sname):
-		self.fp.write(f"DEFINE_NAMEDTUPLE({sname})\n")
+		self.mlist = list()
+		self.fp.write(f"struct {sname} {{\n")
 
 	def EndStruct(self, sname):
-		self.fp.write(f"END_DEFINE_NAMEDTUPLE({sname})\n")
+		self.fp.write(f"MAKE_NAMEDTUPLE(")
+		self.fp.write(",".join(self.mlist))
+		self.fp.write(")\n")
+		self.fp.write(f"}};\n")
 
 class NativeWriter(Writer):
 	def __init__(self, fname):
