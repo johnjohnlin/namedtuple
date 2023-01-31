@@ -83,12 +83,6 @@ struct collection<NT, ::std::integer_sequence<unsigned, indices...>> {
 			and ...
 		);
 	}
-
-	static ::std::array<::std::string, NT::num_members> get_tuple_names() {
-		::std::array<::std::string, NT::num_members> ret;
-		((ret[indices] = NT::template get_name<indices>()), ...);
-		return ret;
-	}
 };
 
 } // namespace namedtuple

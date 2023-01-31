@@ -1,6 +1,12 @@
 [Build status](https://github.com/johnjohnlin/namedtuple/actions/workflows/unittest.yaml/badge.svg)
 
 # What is namedtuple?
+`namdetuple` is a super fast C++ type-reflection library (5x `BOOST_HANA_DEFINE_STRUCT`),
+and you can insert the `namedtuple` macro into your existing structure without modification.
+It's based on `boost.preprocessor`, and the core of our macro is only roughly 10 lines.
+
+
+# Idea behind namedtuple
 In Python, there is a `namedtuple`
 
 ```python
@@ -14,7 +20,7 @@ In C++, we have `tuple` and struct, but we cannot connect them easily.
 
 ```cpp
 struct S { int x; float y; string z; };
-S s_struct
+S s_struct;
 tuple<int, float, string> s_tuple;
 s_struct.y; // float
 s_tuple.get<1>(); // float
@@ -22,26 +28,28 @@ s_tuple.y; // ERROR
 s_struct.get<1>(); // ERROR
 ```
 
-We provide a macro for defining a `namedtuple` in C++ easily.
+We provide a macro for converting your struct to a `namedtuple` in C++ easily.
 
 ```cpp
-DEFINE_NAMEDTUPLE(S2)
-	NT_MEMBER(int   , x)
-	NT_MEMBER(float , y)
-	NT_MEMBER(string, z)
-END_DEFINE_NAMEDTUPLE(S2)
+struct S2 {
+	int    x;
+	float  y;
+	string z;
+	// NOTE: no semicolon here
+	MAKE_NAMEDTUPLE(x, y, z)
+};
 S2 s_namedtuple;
 s_namedtuple.y; // float
 s_namedtuple.get<1>(); // float, the reference of y
 static_assert(sizeof(S2) == sizeof(S)); // namedtuple does not add extra members!
 static_assert(sizeof(S2::num_members) == 3u); // namedtuple also provides ::num_members
-S2::get_name<1>(); // string("y")
+S2::get_name(1); // const char* = "y"
 ```
 
 # nametuple: why and how?
 `namedtuple` provides similar functionalities as [boost::hana](https://boostorg.github.io/hana/index.html) for struct meta-programming (specifically, `BOOST_HANA_DEFINE_STRUCT`).
-You can loop over the member of a struct in compile time, so you can implement `cout`-ing your struct without repeatedly writing boring code.
-Besides, the core of `namedtuple` is very simple (50 lines of macro!), so it has super fast compilation time.
+You can loop over the member of a struct in compile time, so you can implement JSON-like-`cout` struct without repeatedly writing boring code.
+Besides, the core of `namedtuple` is very simple (roughly 10 lines of macro!), so it has super fast compilation time.
 Next we shall show some `namedtuple` usages and review the `namedtuple` performance.
 
 ## Sample usage
@@ -49,12 +57,13 @@ With the `get()` and its overloaded functions, we can make use of parameter pack
 For example, if we want to compare two namedtuples, but ignore members started with an underscore:
 
 ```cpp
-DEFINE_NAMEDTUPLE(S2)
-	NT_MEMBER(int   , x)
+struct S2 {
+	int    x;
 	// will not compare member started with "_"
-	NT_MEMBER(float , _y)
-	NT_MEMBER(string, z)
-END_DEFINE_NAMEDTUPLE(S2)
+	float  _y;
+	string z;
+	MAKE_NAMEDTUPLE(x, y, z)
+};
 
 template<typename NT, unsigned...indices>
 bool compare_impl(const NT& lhs, const NT& rhs, integer_sequence<unsigned, indices...>) {
@@ -91,14 +100,14 @@ We compare three versions of implementation of `ostream<<` with tens of classes 
 * Use `foreach` in `namedtuple` to implement generic `ostream<<`
 * Use code generator to generate plain `ostream<<`
 
-In this specific scenario, we save time/memory by a factor of 4 compared with `boost::hana`, only costing 20-100% overhead compared to non-templated C++ code with code-gen.
+In this specific scenario, we consistently save time/memory by a factor of 5 compared with `boost::hana`, only costing 11-50% overhead compared to non-templated C++ code with code-gen.
 
 Testing scenario:
 
 * Randomly generate tens of deeply nested struct
 * ArchLinux 202301
 * AMD 3700X
-* gcc 12.2.0
+* gcc 12.2.1
 * No extra compile flag
 * Benchmark under `benchmarks/benchmark1`
 
@@ -114,21 +123,23 @@ Testing scenario:
 ### Compile time (second)
 | #structs | Hana | namedtuple | Code-gen | Improvement vs hana |
 | -: | -: | -: | -: | -: |
-| 20 | 6.87  | 1.28 | 0.73 | 5.37x |
-| 25 | 12.23 | 2.53 | 1.79 | 4.83x |
-| 30 | 20.37 | 4.69 | 3.73 | 4.34x |
-| 35 | 27.14 | 6.34 | 5.17 | 4.25x |
-| 40 | 37.95 | 9.14 | 8.08 | 4.15x |
+| 20 | 6.81  | 1.02 | 0.67 | 6.67x |
+| 25 | 12.11 | 2.12 | 1.74 | 5.71x |
+| 30 | 20.59 | 4.10 | 3.55 | 5.02x |
+| 35 | 25.96 | 5.47 | 4.92 | 5.27x |
+| 40 | 37.02 | 8.31 | 7.44 | 4.45x |
 
 # Implementations
 
-The idea is simple. If we implement `get(X)`, where X is overloaded with different `integral_constant`, then we can implement `get<unsigned>()` easily.
+The idea is simple. If we implement `get(X)`, where X is overloaded with different `integral_constant`, then we can implement `get<unsigned>()` easily. This is made possible by `boost.preprocessor`.
 
 ```cpp
 struct S2 {
 	int    x;
 	float  y;
 	string z;
+	// extra code inserted by MAKE_NAMEDTUPLE(x, y, z)
+	// implemented by boost.preprocessor
 	int    get(integral_constant<unsigned, 0>) { return x; }
 	float  get(integral_constant<unsigned, 1>) { return y; }
 	string get(integral_constant<unsigned, 2>) { return z; }
@@ -136,34 +147,7 @@ struct S2 {
 };
 ```
 
-The `__COUNTER__` preprocessor (not a C++ standard) provides the functionalities we need.
-The counter is incremented by one when referenced in a file.
-
-```cpp
-// DEFINE_NAMEDTUPLE(S2)
-struct S2 {
-	static constexpr int Base = 100 + 1;
-// NT_MEMBER
-	int     x;
-	int&    get(integral_constant<unsigned, 101-Base>) { return x; }
-// NT_MEMBER
-	float   y;
-	float&  get(integral_constant<unsigned, 102-Base>) { return y; }
-// NT_MEMBER
-	string  z;
-	string& get(integral_constant<unsigned, 103-Base>) { return z; }
-// END_DEFINE_NAMEDTUPLE(S2)
-	static constexpr int End = 104;
-	static constexpr int num_members = End - Base;
-	template<unsigned x> auto& get() { return get(integral_constant<unsigned, x>()); }
-};
-```
-
 # Requirements
 Just copy everything under `include/` to anywhere you can include.
-The core namedtuple is macro based, so it only requires C++11. However, `util/` might require
-C++14 or C++17 features.
-
-Also, it requires the `__COUNTER__` preprocessor, which is supported by most popular compilers.
-While template based counters also work, `__COUNTER__` might provides better compile time
-since it is only a preprocessor.
+The core `namedtuple` is macro based on `boost.preprocessor` (you don't need the entire boost), so it only requires C++11.
+However, `util/` might require C++14 or C++17 features, or specifically, auto template, `integer_sequence` and fold expressions.

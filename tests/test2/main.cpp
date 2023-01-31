@@ -75,8 +75,6 @@ TEST(operators, compare) {
 	S2 s2a;
 	S2 s2b;
 	unsigned mismatch_pos;
-	auto s1_names = namedtuple::collection<S1>::get_tuple_names();
-	auto s2_names = namedtuple::collection<S2>::get_tuple_names();
 	s2a.d_s1.d_l = 101;
 	s2a.d_s1.d_u = 102;
 	s2a.d_s1.d_s = 103;
@@ -91,17 +89,17 @@ TEST(operators, compare) {
 	s2a.d_str = "1";
 	mismatch_pos = namedtuple::collection<S2>::mismatch(s2a, s2b);
 	EXPECT_EQ(mismatch_pos, 1);
-	EXPECT_EQ(s2_names[mismatch_pos], "d_str"); // get the name of mismatched member
+	EXPECT_EQ(string(s2a.get_name(mismatch_pos)), "d_str"); // get the name of mismatched member
 	EXPECT_FALSE(s2a == s2b);
 	EXPECT_TRUE(s2a != s2b);
 
 	s2a.d_s1.d_u = 0;
 	mismatch_pos = namedtuple::collection<S2>::mismatch(s2a, s2b);
 	EXPECT_EQ(mismatch_pos, 0);
-	EXPECT_EQ(s2_names[mismatch_pos], "d_s1"); // get the name of mismatched member
+	EXPECT_EQ(string(s2a.get_name(mismatch_pos)), "d_s1"); // get the name of mismatched member
 	mismatch_pos = namedtuple::collection<S1>::mismatch(s2a.d_s1, s2b.d_s1);
 	EXPECT_EQ(mismatch_pos, 1);
-	EXPECT_EQ(s1_names[mismatch_pos], "d_u"); // get the name of mismatched member
+	EXPECT_EQ(string(s2a.d_s1.get_name(mismatch_pos)), "d_u"); // get the name of mismatched member
 	EXPECT_FALSE(s2a == s2b);
 	EXPECT_TRUE(s2a != s2b);
 }
