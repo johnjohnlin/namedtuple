@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       name: Checkout repo
-    - run: sudo apt install build-essential cmake libgtest-dev
+    - run: sudo apt install build-essential cmake libgtest-dev libboost-dev
       name: Install system
     - run: |
         mkdir build

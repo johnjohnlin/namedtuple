@@ -22,14 +22,12 @@ void foreach(::std::integer_sequence<unsigned, i...>, Func func) {
 
 template<typename NT, typename Func>
 void foreach(Func func) {
-	detail::foreach<1, 0>(::std::make_integer_sequence<unsigned, NT::num_members>{}, func);
+	detail::foreach<1, 0>(typename NT::indices_t{}, func);
 }
 
 template<typename NT, typename Func>
 void foreach_reversed(Func func) {
-	detail::foreach<unsigned(-1), NT::num_members-1>(
-		::std::make_integer_sequence<unsigned, NT::num_members>{}, func
-	);
+	detail::foreach<unsigned(-1), NT::num_members-1>(typename NT::indices_t{}, func);
 }
 
 } // namespace namedtuple
