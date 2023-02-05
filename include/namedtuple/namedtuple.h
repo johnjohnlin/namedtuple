@@ -6,6 +6,7 @@
 // C system headers
 // C++ standard library headers
 #include <type_traits>
+#include <utility>
 // Other libraries' .h files.
 #include <boost/preprocessor/seq/for_each_i.hpp>
 #include <boost/preprocessor/seq/size.hpp>
